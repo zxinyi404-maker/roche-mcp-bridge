@@ -1,0 +1,14 @@
+{
+  "id": "mcp-bridge",
+  "name": "MCP 工具桥接",
+  "version": "1.0.0",
+  "description": "通过 ECS 服务器调用 MCP 工具",
+  "author": "zxinyi404-maker",
+  "entry": "https://raw.githubusercontent.com/zxinyi404-maker/roche-mcp-bridge/main/plugin.js",
+  "hash": "",
+  "permissions": [
+    "ai:chat",
+    "storage",
+    "ui"
+  ]
+}
