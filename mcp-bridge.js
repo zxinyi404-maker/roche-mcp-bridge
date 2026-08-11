@@ -1,12 +1,12 @@
 /*
- * Roche MCP 桥接插件 v2.0.0
+ * Roche MCP 桥接插件 v2.0.1
  * 让主聊天 AI 按需调用 ECS MCP 服务器工具
  */
 (function () {
   "use strict";
 
   const PLUGIN_ID = "mcp-bridge";
-  const MCP_SERVER = "http://182.92.218.147:3000";
+  const MCP_SERVER = "http://182.92.218.147:3000/mcp";
 
   // 全局状态
   let globalState = {
@@ -88,7 +88,7 @@
   window.RochePlugin.register({
     id: PLUGIN_ID,
     name: "MCP 工具桥接",
-    version: "2.0.0",
+    version: "2.0.1",
 
     // 主聊天工具注册
     chat: {
@@ -104,7 +104,7 @@
             await initGlobalState(roche);
 
             const message = String(args?.message || "Hello MCP").trim();
-            const result = await callMCPServer("/mcp/echo", { message });
+            const result = await callMCPServer("/echo", { message });
 
             addToHistory("mcp_echo", { message }, result);
             await persistState(roche);
@@ -126,7 +126,7 @@
               return { error: "搜索关键词不能为空" };
             }
 
-            const result = await callMCPServer("/mcp/search_with_cache", { query });
+            const result = await callMCPServer("/search_with_cache", { query });
 
             addToHistory("mcp_search", { query }, result);
             await persistState(roche);
@@ -148,7 +148,7 @@
               return { error: "搜索关键词列表不能为空" };
             }
 
-            const result = await callMCPServer("/mcp/batch_search", { queries });
+            const result = await callMCPServer("/batch_search", { queries });
 
             addToHistory("mcp_batch_search", { queries }, result);
             await persistState(roche);
@@ -175,7 +175,7 @@
               return { error: "搜索主题不能为空" };
             }
 
-            const result = await callMCPServer("/mcp/deep_search", {
+            const result = await callMCPServer("/deep_search", {
               query,
               depth: Math.min(depth, 5) // 限制最大深度
             });
@@ -201,7 +201,7 @@
           // 获取缓存统计
           let cacheStats = { hits: 0, misses: 0, total: 0 };
           try {
-            const response = await fetch(`${globalState.serverUrl}/mcp/cache_stats`);
+            const response = await fetch(`${globalState.serverUrl}/cache_stats`);
             if (response.ok) {
               cacheStats = await response.json();
             }
@@ -215,7 +215,7 @@
                 <button id="back-btn" style="padding: 8px 16px; background: #f0f0f0; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
                   ← 返回
                 </button>
-                <h2 style="margin: 0 0 0 16px; font-size: 18px; font-weight: 600;">MCP 工具桥接 v2.0.0</h2>
+                <h2 style="margin: 0 0 0 16px; font-size: 18px; font-weight: 600;">MCP 工具桥接 v2.0.1</h2>
               </div>
 
               <div style="flex: 1; overflow-y: auto; padding: 20px;">
@@ -233,7 +233,7 @@
                   <h3 style="margin: 0 0 16px; font-size: 16px;">⚙️ 基本设置</h3>
 
                   <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">MCP 服务器地址</label>
-                  <input id="server-input" type="text" placeholder="http://your-server:3000" value="${globalState.serverUrl}" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 16px;" />
+                  <input id="server-input" type="text" placeholder="http://your-server:3000/mcp" value="${globalState.serverUrl}" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 16px;" />
 
                   <label style="display: flex; align-items: center; cursor: pointer;">
                     <input id="enabled-checkbox" type="checkbox" ${globalState.enabled ? "checked" : ""} style="width: 20px; height: 20px; margin-right: 10px; cursor: pointer;" />
@@ -360,7 +360,7 @@
             testBtn.disabled = true;
             testBtn.style.opacity = "0.6";
 
-            const result = await callMCPServer("/mcp/echo", { message: "测试连接" });
+            const result = await callMCPServer("/echo", { message: "测试连接" });
 
             if (result.error) {
               resultDiv.innerHTML = `<strong style="color: #d32f2f;">❌ 连接失败</strong><div style="margin-top: 8px; font-size: 12px;">${result.error}</div>`;
@@ -384,7 +384,7 @@
 
             if (ok) {
               try {
-                const response = await fetch(`${globalState.serverUrl}/mcp/clear_cache`, {
+                const response = await fetch(`${globalState.serverUrl}/clear_cache`, {
                   method: "POST"
                 });
 
