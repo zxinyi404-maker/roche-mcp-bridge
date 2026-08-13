@@ -1,218 +1,223 @@
-# Roche MCP 工具桥接插件 v2.0.1
+# Roche 标准 MCP 插件
 
-让主聊天 AI 按需调用 ECS MCP 服务器工具，实现智能搜索、批量查询、深度分析等功能。
+支持标准 Model Context Protocol 的 Roche 插件，让你可以连接任意 MCP 服务器！
 
-## ✨ 特性
+## ✨ 功能特性
 
-### 🤖 主聊天集成
-- **自动工具调用**：AI 根据对话内容自动选择合适的 MCP 工具
-- **无感接入**：用户无需手动触发，AI 会在需要时自动调用
-- **多种工具**：搜索、批量搜索、深度搜索、连接测试
+- 🔌 **管理多个 MCP 服务器** - 添加、编辑、删除 MCP 服务器
+- 🔍 **自动工具发现** - 自动调用 `tools/list` 获取所有可用工具
+- 🎯 **动态工具注册** - 发现的工具自动注册到 Roche，AI 可直接调用
+- 🌐 **CORS 代理支持** - 通过你自己的代理服务器解决跨域问题
+- 💾 **配置持久化** - 服务器配置保存到本地，下次自动加载
+- 🎨 **现代化 UI** - 美观的卡片式布局，操作简单直观
 
-### 🛠️ 可用工具
+## 🚀 快速开始
 
-| 工具 | 说明 | 使用场景 |
-|------|------|----------|
-| `mcp_search` | 搜索信息 | 实时信息查询、事实核查、资料检索 |
-| `mcp_batch_search` | 批量搜索 | 对比多个主题、并行查询多个问题 |
-| `mcp_deep_search` | 深度搜索 | 全面了解主题、生成详细报告 |
-| `mcp_echo` | 测试连接 | 诊断服务器连接问题 |
+### 1. 在 Roche 中安装插件
 
-### 📊 管理功能
-- **设置界面**：配置服务器地址、启用/禁用桥接
-- **服务器测试**：一键测试 MCP 服务器连接状态
-- **缓存统计**：查看服务器缓存命中率、清空缓存
-- **调用历史**：记录最近 100 次工具调用，展示最近 20 条
-
-## 📥 安装
-
-### 方法 1：通过 manifest（推荐）
-
-1. 在 Roche 中打开**插件管理**
-2. 点击**安装插件**
-3. 粘贴以下链接：
+打开 Roche，进入插件管理，添加以下 GitHub 仓库：
 
 ```
-https://raw.githubusercontent.com/zxinyi404-maker/roche-mcp-bridge/main/manifest.json
+https://github.com/zxinyi404-maker/roche-mcp-bridge
 ```
 
-4. 点击**安装**
+或者直接加载 `plugin.js` 文件。
 
-### 方法 2：直接安装 JS
+### 2. 配置 CORS 代理
 
-粘贴此链接（不推荐，更新时需要重新安装）：
+插件需要通过 CORS 代理转发 MCP 请求。默认使用：
 
 ```
-https://raw.githubusercontent.com/zxinyi404-maker/roche-mcp-bridge/main/mcp-bridge.js
+https://mcp.littlephone.top/proxy
 ```
 
-## ⚙️ 配置
+你也可以部署自己的代理服务器（见下方）。
 
-### 1. 打开 MCP 设置
+### 3. 添加 MCP 服务器
 
-安装后，在 Roche 桌面或应用列表中找到 **MCP 设置**，点击打开。
+1. 点击 Roche 侧边栏的 **"MCP 管理"**
+2. 点击 **"+ 添加服务器"**
+3. 填写服务器信息：
+   - **名称**: 例如 `Ombre Brain`
+   - **地址**: MCP 服务器的 URL，例如 `https://your-server.com/mcp`
+   - **认证**: 如果需要，填写 Bearer Token
+4. 点击 **"测试"** 检查连接
+5. 点击 **"🔄 刷新"** 加载所有工具
 
-### 2. 配置服务器地址
+### 4. 开始使用
 
-默认地址：`http://182.92.218.147:3000`
+添加服务器后，所有工具会自动注册到 Roche。在聊天中，AI 就可以直接调用这些工具了！
 
-如果你使用自己的 MCP 服务器，修改为你的服务器地址。
+例如：
+- "帮我搜索一下量子计算的最新进展"（如果接入了搜索 MCP）
+- "帮我保存这段信息到记忆库"（如果接入了 Ombre Brain）
+- "读取项目目录下的 README.md"（如果接入了文件系统 MCP）
 
-### 3. 启用桥接
+## 🔧 部署 CORS 代理
 
-确保 **启用 MCP 桥接** 选项已勾选。
+由于浏览器安全限制，需要通过代理转发 MCP 请求。
 
-### 4. 测试连接
+### 使用 Python + FastAPI（推荐）
 
-点击 **测试连接** 按钮，确认服务器正常响应。
+```bash
+# 1. 创建 app.py
+cat > app.py << 'EOF'
+import httpx
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
 
-### 5. 保存设置
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
+)
 
-点击 **保存设置** 按钮。
+@app.get("/")
+async def health():
+    return {"status": "running"}
 
-## 🚀 使用方法
+@app.post("/proxy")
+async def proxy(request: Request):
+    try:
+        payload = await request.json()
+        target_url = payload.get("url")
+        method = payload.get("method", "POST")
+        headers = payload.get("headers", {})
+        body = payload.get("body")
 
-### 自动调用（推荐）
+        client = httpx.AsyncClient(timeout=None, follow_redirects=True)
+        upstream_request = client.build_request(method, target_url, headers=headers, content=body)
+        upstream = await client.send(upstream_request, stream=True)
 
-直接在主聊天中对话，AI 会自动判断何时需要调用 MCP 工具：
+        async def stream_body():
+            try:
+                async for chunk in upstream.aiter_bytes():
+                    yield chunk
+            finally:
+                await upstream.aclose()
+                await client.aclose()
 
-**示例 1：信息查询**
-```
-你：Claude Opus 5 有哪些新特性？
-AI：[自动调用 mcp_search 搜索最新信息]
-```
+        return StreamingResponse(
+            stream_body(),
+            status_code=upstream.status_code,
+            media_type=upstream.headers.get("content-type")
+        )
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+EOF
 
-**示例 2：对比分析**
-```
-你：对比一下 GPT-4、Claude 3.5 和 Gemini Pro 的特点
-AI：[自动调用 mcp_batch_search 并行搜索多个主题]
-```
+# 2. 安装依赖
+pip3 install fastapi httpx uvicorn
 
-**示例 3：深度研究**
-```
-你：帮我详细了解一下量子计算的发展现状
-AI：[自动调用 mcp_deep_search 进行深度搜索和分析]
-```
-
-### 查看调用历史
-
-1. 打开 **MCP 设置**
-2. 滚动到 **调用历史** 区域
-3. 查看最近的工具调用记录、参数和结果
-
-## 🏗️ 服务器要求
-
-### ECS MCP 服务器需要提供以下 API 端点：
-
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| `/mcp/echo` | POST | 测试连接 |
-| `/mcp/search_with_cache` | POST | 带缓存的搜索 |
-| `/mcp/batch_search` | POST | 批量搜索 |
-| `/mcp/deep_search` | POST | 深度搜索 |
-| `/mcp/cache_stats` | GET | 缓存统计 |
-| `/mcp/clear_cache` | POST | 清空缓存 |
-
-### 请求格式示例
-
-**搜索：**
-```json
-POST /mcp/search_with_cache
-{
-  "query": "搜索关键词"
-}
-```
-
-**批量搜索：**
-```json
-POST /mcp/batch_search
-{
-  "queries": ["关键词1", "关键词2", "关键词3"]
-}
-```
-
-**深度搜索：**
-```json
-POST /mcp/deep_search
-{
-  "query": "搜索主题",
-  "depth": 3
-}
+# 3. 运行服务
+uvicorn app:app --host 0.0.0.0 --port 8080
 ```
 
-## 📝 开发说明
+### 使用 Cloudflare Tunnel（推荐用于生产环境）
+
+```bash
+# 1. 安装 cloudflared
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
+sudo chmod +x /usr/local/bin/cloudflared
+
+# 2. 运行 tunnel（临时域名）
+cloudflared tunnel --url http://localhost:8080
+
+# 或创建永久 tunnel
+cloudflared tunnel login
+cloudflared tunnel create mcp-proxy
+cloudflared tunnel route dns mcp-proxy mcp.yourdomain.com
+cloudflared tunnel run mcp-proxy
+```
+
+## 📖 支持的 MCP 服务器
+
+理论上支持所有符合标准 MCP 协议的服务器：
+
+- **Ombre Brain** - AI 记忆系统
+- **文件系统 MCP** - 读写本地文件
+- **数据库 MCP** - 查询数据库（SQLite, PostgreSQL 等）
+- **Slack MCP** - 发送消息、查询频道
+- **GitHub MCP** - 管理仓库、Issues、PR
+- **Google Drive MCP** - 访问云端文件
+- **Notion MCP** - 管理 Notion 页面
+- ...以及任何你自己开发的 MCP 服务器！
+
+## 🎯 MCP 协议实现
+
+本插件实现了 MCP 协议的核心功能：
+
+### 当前支持（v1.0）
+- ✅ `tools/list` - 工具发现
+- ✅ `tools/call` - 工具调用
+- ✅ JSON-RPC 2.0 请求/响应
+- ✅ 通过 CORS 代理转发
+
+### 计划支持（v2.0）
+- ⏳ `initialize` - 握手协议
+- ⏳ Session 管理
+- ⏳ SSE 流式响应
+- ⏳ 资源（Resources）支持
+- ⏳ 提示（Prompts）支持
+
+## 🛠️ 开发
 
 ### 项目结构
 
 ```
 roche-mcp-bridge/
-├── manifest.json          # 插件清单
-├── mcp-bridge.js         # 插件主文件
-└── README.md             # 说明文档
+├── plugin.js           # 主插件文件
+├── manifest.json       # 插件元数据
+└── README.md          # 说明文档
 ```
 
 ### 本地开发
 
-1. 修改 `mcp-bridge.js`
-2. 推送到 GitHub
-3. 在 Roche 中卸载旧版本
-4. 重新安装新版本
+1. 克隆仓库
+```bash
+git clone https://github.com/zxinyi404-maker/roche-mcp-bridge.git
+cd roche-mcp-bridge
+```
 
-### 版本更新
+2. 修改 `plugin.js`
 
-更新插件时需要修改三处版本号：
-1. `manifest.json` 中的 `version`
-2. `mcp-bridge.js` 顶部注释中的版本号
-3. `mcp-bridge.js` 中 `window.RochePlugin.register` 的 `version`
+3. 在 Roche 中重新加载插件
 
-## 🔧 故障排查
+### 调试
 
-### 问题 1：AI 没有调用工具
+在浏览器控制台查看日志：
 
-**可能原因：**
-- MCP 桥接未启用
-- 服务器地址配置错误
-- AI 判断当前对话不需要工具
+```javascript
+// 查看 MCP 请求日志
+localStorage.setItem('mcp_debug', 'true')
 
-**解决方法：**
-1. 打开 **MCP 设置**，确认已启用
-2. 点击 **测试连接**，确认服务器可访问
-3. 尝试明确要求 AI 搜索信息
+// 关闭调试
+localStorage.removeItem('mcp_debug')
+```
 
-### 问题 2：工具调用失败
+## 🤝 贡献
 
-**可能原因：**
-- 服务器未启动
-- 网络连接问题
-- 服务器 API 返回错误
-
-**解决方法：**
-1. 检查 **调用历史**，查看错误信息
-2. 手动测试服务器 API：
-   ```bash
-   curl -X POST http://你的服务器地址:3000/mcp/echo \
-     -H "Content-Type: application/json" \
-     -d '{"message":"test"}'
-   ```
-3. 查看服务器日志
-
-### 问题 3：缓存过期或不准确
-
-**解决方法：**
-1. 打开 **MCP 设置**
-2. 点击 **清空服务器缓存**
-3. 重新调用工具
+欢迎提交 Issue 和 Pull Request！
 
 ## 📄 许可
 
 MIT License
 
-## 🔗 相关资源
+## 🔗 相关项目
 
-- **GitHub 仓库**：https://github.com/zxinyi404-maker/roche-mcp-bridge
-- **MCP 服务器**：http://182.92.218.147:3000
-- **Roche 插件文档**：参考本地开发文档
+- [Roche](https://github.com/your-repo/roche) - AI 对话应用
+- [MCP Protocol](https://modelcontextprotocol.io/) - Model Context Protocol 官方文档
+- [Ombre Brain](https://github.com/ombre/brain) - AI 记忆系统
 
-## 📧 反馈与支持
+## 📮 联系方式
 
-如有问题或建议，请在 GitHub 提 Issue。
+- GitHub Issues: https://github.com/zxinyi404-maker/roche-mcp-bridge/issues
+
+---
+
+**让 Roche 接入整个 MCP 生态！** 🚀
