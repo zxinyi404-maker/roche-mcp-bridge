@@ -9,7 +9,7 @@
 
   const PLUGIN_ID = "standard-mcp";
   const APP_ID = "mcp-manager";
-  const VERSION = "1.3.1";
+  const VERSION = "1.3.2";
 
   const STORAGE_KEY_SERVERS = "mcp_servers";
   const STORAGE_KEY_PROXY = "mcp_proxy_url";
@@ -34,7 +34,7 @@
 
       return {
         servers: servers ? JSON.parse(servers) : [],
-        proxyUrl: proxyUrl || "https://mcp.littlephone.top/proxy"
+        proxyUrl: proxyUrl || "http://182.92.218.147:8080/proxy"
       };
     } catch (e) {
       console.error("[MCP] 加载配置失败:", e);
