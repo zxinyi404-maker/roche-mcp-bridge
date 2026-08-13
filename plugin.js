@@ -9,7 +9,7 @@
 
   const PLUGIN_ID = "standard-mcp";
   const APP_ID = "mcp-manager";
-  const VERSION = "1.3.0";
+  const VERSION = "1.3.1";
 
   const STORAGE_KEY_SERVERS = "mcp_servers";
   const STORAGE_KEY_PROXY = "mcp_proxy_url";
@@ -387,7 +387,7 @@
         const proxyInput = container.querySelector("#proxy-url");
         state.config.proxyUrl = proxyInput.value.trim();
         await saveConfig(roche, state.config);
-        roche.toast("代理地址已保存", "success");
+        roche.ui.toast("代理地址已保存");
       };
     }
 
@@ -470,7 +470,7 @@
       const auth = dialog.querySelector("#server-auth").value.trim();
 
       if (!name || !url) {
-        roche.toast("请填写名称和地址", "error");
+        roche.ui.toast("请填写名称和地址");
         return;
       }
 
@@ -485,7 +485,7 @@
       await saveConfig(roche, state.config);
       closeDialog(dialog);
       buildUI(state, container, roche);
-      roche.toast(isEdit ? "服务器已更新" : "服务器已添加", "success");
+      roche.ui.toast(isEdit ? "服务器已更新" : "服务器已添加");
     };
 
     dialog.onclick = (e) => {
@@ -500,7 +500,7 @@
 
   async function testServer(state, container, roche, index) {
     const server = state.config.servers[index];
-    roche.toast(`正在测试 ${server.name}...`, "info");
+    roche.ui.toast(`正在测试 ${server.name}...`);
 
     try {
       const result = await testMCPServer(state.config.proxyUrl, server.url);
@@ -514,16 +514,16 @@
         await registerTools(roche, state.config.servers, state.config.proxyUrl);
 
         buildUI(state, container, roche);
-        roche.toast(`✅ ${server.name} 连接成功！发现 ${result.toolCount} 个工具，已自动注册`, "success");
+        roche.ui.toast(`✅ ${server.name} 连接成功！发现 ${result.toolCount} 个工具，已自动注册`);
       } else {
         server.connected = false;
         delete server.toolCount;
         await saveConfig(roche, state.config);
         buildUI(state, container, roche);
-        roche.toast(`❌ ${server.name} 连接失败: ${result.error}`, "error");
+        roche.ui.toast(`❌ ${server.name} 连接失败: ${result.error}`);
       }
     } catch (e) {
-      roche.toast(`测试失败: ${e.message}`, "error");
+      roche.ui.toast(`测试失败: ${e.message}`);
     }
   }
 
@@ -535,7 +535,7 @@
       state.config.servers.splice(index, 1);
       await saveConfig(roche, state.config);
       buildUI(state, container, roche);
-      roche.toast("服务器已删除", "success");
+      roche.ui.toast("服务器已删除");
     }
   }
 
@@ -594,7 +594,7 @@
       `).join('');
     }
 
-    roche.toast(`发现 ${allTools.length} 个工具`, "success");
+    roche.ui.toast(`发现 ${allTools.length} 个工具`);
   }
 
   function escapeHtml(text) {
