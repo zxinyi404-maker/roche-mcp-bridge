@@ -9,10 +9,14 @@
 
   const PLUGIN_ID = "standard-mcp";
   const APP_ID = "mcp-manager";
-  const VERSION = "1.2.1";
+  const VERSION = "1.3.0";
 
   const STORAGE_KEY_SERVERS = "mcp_servers";
   const STORAGE_KEY_PROXY = "mcp_proxy_url";
+  const STORAGE_KEY_TOOLS = "mcp_registered_tools";
+
+  // 全局工具列表（用于动态更新）
+  let registeredTools = [];
 
   // ==================== 工具函数 ====================
 
@@ -20,6 +24,14 @@
     try {
       const servers = await roche.storage.get(STORAGE_KEY_SERVERS);
       const proxyUrl = await roche.storage.get(STORAGE_KEY_PROXY);
+      const tools = await roche.storage.get(STORAGE_KEY_TOOLS);
+
+      // 恢复已注册的工具
+      if (tools) {
+        registeredTools = JSON.parse(tools);
+        console.log(`[MCP] 加载了 ${registeredTools.length} 个已注册工具`);
+      }
+
       return {
         servers: servers ? JSON.parse(servers) : [],
         proxyUrl: proxyUrl || "https://mcp.littlephone.top/proxy"
@@ -109,6 +121,68 @@
         error: e.message
       };
     }
+  }
+
+  /**
+   * 注册工具到 Roche
+   */
+  async function registerTools(roche, servers, proxyUrl) {
+    const allTools = [];
+
+    for (const server of servers) {
+      if (!server.connected) continue;
+
+      try {
+        const result = await callMCP(proxyUrl, server.url, "tools/list");
+        const tools = result.tools || [];
+
+        tools.forEach(tool => {
+          allTools.push({
+            id: `${server.name.toLowerCase().replace(/\s+/g, '_')}_${tool.name}`,
+            name: tool.name,
+            description: tool.description || '无描述',
+            parameters: tool.inputSchema || {},
+            serverName: server.name,
+            serverUrl: server.url,
+            async execute(args, ctx) {
+              console.log(`[MCP] 执行工具: ${tool.name}`, args);
+              try {
+                const result = await callMCP(proxyUrl, server.url, "tools/call", {
+                  name: tool.name,
+                  arguments: args
+                });
+                return result.content || result;
+              } catch (e) {
+                console.error(`[MCP] 工具执行失败: ${tool.name}`, e);
+                return `执行失败: ${e.message}`;
+              }
+            }
+          });
+        });
+      } catch (e) {
+        console.error(`[MCP] 从 ${server.name} 注册工具失败:`, e);
+      }
+    }
+
+    // 更新全局工具列表
+    registeredTools = allTools;
+
+    // 保存到存储
+    try {
+      await roche.storage.set(STORAGE_KEY_TOOLS, JSON.stringify(allTools.map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        parameters: t.parameters,
+        serverName: t.serverName,
+        serverUrl: t.serverUrl
+      }))));
+    } catch (e) {
+      console.error("[MCP] 保存工具列表失败:", e);
+    }
+
+    console.log(`[MCP] 已注册 ${allTools.length} 个工具`);
+    return allTools;
   }
 
   // ==================== UI 构建 ====================
@@ -435,8 +509,12 @@
         server.connected = true;
         server.toolCount = result.toolCount;
         await saveConfig(roche, state.config);
+
+        // 自动注册工具
+        await registerTools(roche, state.config.servers, state.config.proxyUrl);
+
         buildUI(state, container, roche);
-        roche.toast(`✅ ${server.name} 连接成功！发现 ${result.toolCount} 个工具`, "success");
+        roche.toast(`✅ ${server.name} 连接成功！发现 ${result.toolCount} 个工具，已自动注册`, "success");
       } else {
         server.connected = false;
         delete server.toolCount;
@@ -527,14 +605,18 @@
 
   // ==================== 插件注册 ====================
 
-  window.RochePlugin.register({
+  // 创建插件配置对象
+  const pluginConfig = {
     id: PLUGIN_ID,
     name: "MCP 服务器",
     version: VERSION,
     description: "支持标准 MCP 协议，连接任意 MCP 服务器",
 
     chat: {
-      tools: []
+      get tools() {
+        // 动态返回工具列表
+        return registeredTools;
+      }
     },
 
     apps: [
@@ -552,6 +634,13 @@
           container.__mcpState = state;
           addStyles();
           buildUI(state, container, roche);
+
+          // 自动注册已连接服务器的工具
+          const connectedServers = config.servers.filter(s => s.connected);
+          if (connectedServers.length > 0) {
+            console.log('[MCP] 自动注册已连接服务器的工具...');
+            await registerTools(roche, config.servers, config.proxyUrl);
+          }
         },
         async unmount(container, roche) {
           container.__mcpState = null;
@@ -560,7 +649,9 @@
         }
       }
     ]
-  });
+  };
+
+  window.RochePlugin.register(pluginConfig);
 
   // ==================== 样式（参考 Twitter 风格）====================
 
