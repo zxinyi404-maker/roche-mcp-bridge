@@ -9,7 +9,7 @@
 
   const PLUGIN_ID = "standard-mcp";
   const APP_ID = "mcp-manager";
-  const VERSION = "1.2.0";
+  const VERSION = "1.2.1";
 
   const STORAGE_KEY_SERVERS = "mcp_servers";
   const STORAGE_KEY_PROXY = "mcp_proxy_url";
@@ -293,10 +293,15 @@
     const closeBtn = container.querySelector("#close-btn");
     if (closeBtn) {
       closeBtn.onclick = () => {
-        if (roche.app && roche.app.close) {
+        if (roche && roche.ui && roche.ui.closeApp) {
+          console.log('[MCP] 调用 roche.ui.closeApp()');
+          roche.ui.closeApp();
+        } else if (roche.app && roche.app.close) {
           roche.app.close(APP_ID);
         } else if (window.history.length > 1) {
           window.history.back();
+        } else {
+          console.error('[MCP] 无法找到关闭方法');
         }
       };
     }
