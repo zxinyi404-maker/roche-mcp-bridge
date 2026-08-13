@@ -1,15 +1,15 @@
 /*
- * 标准 MCP 插件 for Roche v1.1.0
+ * 标准 MCP 插件 for Roche v1.2.0
  * -------------------------------------------------------------
  * 支持标准 MCP 协议（Model Context Protocol）
- * 美化升级：现代化 UI、毛玻璃效果、平滑动画
+ * 美化升级：参考 Twitter 插件风格 - 简洁、优雅、扁平化
  */
 (function () {
   "use strict";
 
   const PLUGIN_ID = "standard-mcp";
   const APP_ID = "mcp-manager";
-  const VERSION = "1.1.0";
+  const VERSION = "1.2.0";
 
   const STORAGE_KEY_SERVERS = "mcp_servers";
   const STORAGE_KEY_PROXY = "mcp_proxy_url";
@@ -117,24 +117,35 @@
     container.innerHTML = `
       <div class="mcp-app">
         <!-- 顶部导航栏 -->
-        <div class="mcp-header">
+        <div class="mcp-top-bar">
           <button class="mcp-back-btn" id="back-btn">
-            <span class="material-icons">arrow_back</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </button>
-          <h1 class="mcp-title">MCP 服务器</h1>
-          <div class="mcp-header-spacer"></div>
+          <h1 class="mcp-top-title">MCP 服务器</h1>
+          <button class="mcp-close-btn" id="close-btn" title="关闭">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
 
         <!-- 主内容区 -->
         <div class="mcp-content">
-          <!-- CORS 代理配置卡片 -->
-          <div class="mcp-card mcp-card-gradient">
-            <div class="mcp-card-header">
-              <span class="material-icons mcp-card-icon">cloud_sync</span>
-              <h2>CORS 代理</h2>
+
+          <!-- CORS 代理配置 -->
+          <div class="mcp-section">
+            <div class="mcp-section-header">
+              <svg class="mcp-section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M2 12H22" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <h2>CORS 代理地址</h2>
             </div>
-            <p class="mcp-card-desc">用于转发 MCP 请求，解决浏览器跨域限制</p>
-            <div class="mcp-input-row">
+            <p class="mcp-section-desc">用于转发 MCP 请求，解决浏览器跨域限制</p>
+            <div class="mcp-input-group">
               <input
                 type="text"
                 id="proxy-url"
@@ -142,45 +153,66 @@
                 value="${state.config.proxyUrl}"
                 placeholder="https://mcp.littlephone.top/proxy"
               />
-              <button id="save-proxy" class="mcp-btn mcp-btn-primary">
-                <span class="material-icons">check</span>
-              </button>
+              <button id="save-proxy" class="mcp-btn mcp-btn-primary">保存</button>
             </div>
           </div>
 
           <!-- MCP 服务器列表 -->
-          <div class="mcp-card">
-            <div class="mcp-card-header">
-              <span class="material-icons mcp-card-icon">dns</span>
+          <div class="mcp-section">
+            <div class="mcp-section-header">
+              <svg class="mcp-section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+                <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+                <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+                <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+              </svg>
               <h2>MCP 服务器</h2>
-              <button id="add-server" class="mcp-btn-icon">
-                <span class="material-icons">add_circle</span>
+              <button id="add-server" class="mcp-icon-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
               </button>
             </div>
             <div id="server-list" class="mcp-server-list">
               ${state.config.servers.length === 0
-                ? '<div class="mcp-empty"><span class="material-icons">dns</span><p>还没有配置服务器</p><span class="mcp-hint-text">点击右上角添加</span></div>'
+                ? `<div class="mcp-empty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="3" y="3" width="7" height="7" rx="1"/>
+                      <rect x="14" y="3" width="7" height="7" rx="1"/>
+                      <rect x="14" y="14" width="7" height="7" rx="1"/>
+                      <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    <p>还没有配置 MCP 服务器</p>
+                    <span class="mcp-empty-hint">点击右上角 + 添加服务器</span>
+                  </div>`
                 : state.config.servers.map((s, i) => renderServerCard(s, i)).join('')
               }
             </div>
           </div>
 
           <!-- 可用工具列表 -->
-          <div class="mcp-card">
-            <div class="mcp-card-header">
-              <span class="material-icons mcp-card-icon">build</span>
+          <div class="mcp-section">
+            <div class="mcp-section-header">
+              <svg class="mcp-section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
               <h2>可用工具</h2>
-              <button id="refresh-tools" class="mcp-btn-icon">
-                <span class="material-icons">refresh</span>
+              <button id="refresh-tools" class="mcp-icon-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M21.5 2V8M21.5 8H15.5M21.5 8L18 4.5C16.5 3 14.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17 22 21 18.5 21.8 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
               </button>
             </div>
             <div id="tools-list" class="mcp-tools-list">
               <div class="mcp-empty-small">
-                <span class="material-icons">refresh</span>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21.5 2V8M21.5 8H15.5M21.5 8L18 4.5C16.5 3 14.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17 22 21 18.5 21.8 14" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
                 <p>点击右上角刷新加载工具</p>
               </div>
             </div>
           </div>
+
         </div>
       </div>
     `;
@@ -190,32 +222,51 @@
 
   function renderServerCard(server, index) {
     const statusClass = server.connected ? 'connected' : 'disconnected';
-    const statusIcon = server.connected ? 'check_circle' : 'error';
     const statusText = server.connected ? '已连接' : '未连接';
+    const statusColor = server.connected ? '#00ba7c' : '#f91880';
 
     return `
       <div class="mcp-server-card mcp-server-${statusClass}">
-        <div class="mcp-server-status-badge">
-          <span class="material-icons">${statusIcon}</span>
-          ${statusText}
+        <div class="mcp-server-header">
+          <div class="mcp-server-info">
+            <h3 class="mcp-server-name">${escapeHtml(server.name)}</h3>
+            <p class="mcp-server-url">${escapeHtml(server.url)}</p>
+          </div>
+          <div class="mcp-server-status" style="color: ${statusColor}">
+            <svg width="8" height="8" viewBox="0 0 8 8">
+              <circle cx="4" cy="4" r="4" fill="currentColor"/>
+            </svg>
+            ${statusText}
+          </div>
         </div>
-        <h3 class="mcp-server-name">${escapeHtml(server.name)}</h3>
-        <p class="mcp-server-url">${escapeHtml(server.url)}</p>
         ${server.toolCount !== undefined
-          ? `<div class="mcp-server-tools"><span class="material-icons">build</span> ${server.toolCount} 个工具</div>`
+          ? `<div class="mcp-server-tools">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+              </svg>
+              ${server.toolCount} 个工具
+            </div>`
           : ''
         }
         <div class="mcp-server-actions">
-          <button class="mcp-action-btn mcp-btn-test" data-index="${index}">
-            <span class="material-icons">flash_on</span>
+          <button class="mcp-action-btn mcp-action-test" data-index="${index}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
             测试
           </button>
-          <button class="mcp-action-btn mcp-btn-edit" data-index="${index}">
-            <span class="material-icons">edit</span>
+          <button class="mcp-action-btn mcp-action-edit" data-index="${index}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
             编辑
           </button>
-          <button class="mcp-action-btn mcp-btn-delete" data-index="${index}">
-            <span class="material-icons">delete</span>
+          <button class="mcp-action-btn mcp-action-delete" data-index="${index}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
             删除
           </button>
         </div>
@@ -231,10 +282,21 @@
         if (window.history.length > 1) {
           window.history.back();
         } else {
-          // Roche 的返回逻辑
           if (roche.app && roche.app.close) {
             roche.app.close(APP_ID);
           }
+        }
+      };
+    }
+
+    // 关闭按钮
+    const closeBtn = container.querySelector("#close-btn");
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        if (roche.app && roche.app.close) {
+          roche.app.close(APP_ID);
+        } else if (window.history.length > 1) {
+          window.history.back();
         }
       };
     }
@@ -263,15 +325,15 @@
     }
 
     // 服务器操作
-    container.querySelectorAll(".mcp-btn-test").forEach(btn => {
+    container.querySelectorAll(".mcp-action-test").forEach(btn => {
       btn.onclick = () => testServer(state, container, roche, parseInt(btn.dataset.index));
     });
 
-    container.querySelectorAll(".mcp-btn-edit").forEach(btn => {
+    container.querySelectorAll(".mcp-action-edit").forEach(btn => {
       btn.onclick = () => showServerDialog(state, container, roche, parseInt(btn.dataset.index));
     });
 
-    container.querySelectorAll(".mcp-btn-delete").forEach(btn => {
+    container.querySelectorAll(".mcp-action-delete").forEach(btn => {
       btn.onclick = () => deleteServer(state, container, roche, parseInt(btn.dataset.index));
     });
   }
@@ -287,35 +349,27 @@
         <div class="mcp-dialog-header">
           <h2>${isEdit ? '编辑' : '添加'}服务器</h2>
           <button class="mcp-dialog-close" id="dialog-close">
-            <span class="material-icons">close</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
           </button>
         </div>
-        <div class="mcp-dialog-content">
-          <div class="mcp-form-group">
-            <label>
-              <span class="material-icons">label</span>
-              名称
-            </label>
+        <div class="mcp-dialog-body">
+          <div class="mcp-form-item">
+            <label>服务器名称</label>
             <input type="text" id="server-name" class="mcp-input" value="${escapeHtml(server.name)}" placeholder="例如: Ombre Brain" />
           </div>
-
-          <div class="mcp-form-group">
-            <label>
-              <span class="material-icons">link</span>
-              服务器地址
-            </label>
+          <div class="mcp-form-item">
+            <label>服务器地址</label>
             <input type="text" id="server-url" class="mcp-input" value="${escapeHtml(server.url)}" placeholder="https://example.com/mcp" />
           </div>
-
-          <div class="mcp-form-group">
-            <label>
-              <span class="material-icons">vpn_key</span>
-              认证信息（可选）
-            </label>
+          <div class="mcp-form-item">
+            <label>认证信息 <span class="mcp-label-optional">(可选)</span></label>
             <input type="text" id="server-auth" class="mcp-input" value="${escapeHtml(server.auth || '')}" placeholder="Bearer token 或留空" />
           </div>
         </div>
-        <div class="mcp-dialog-actions">
+        <div class="mcp-dialog-footer">
           <button id="dialog-cancel" class="mcp-btn mcp-btn-secondary">取消</button>
           <button id="dialog-save" class="mcp-btn mcp-btn-primary">${isEdit ? '保存' : '添加'}</button>
         </div>
@@ -324,12 +378,10 @@
 
     document.body.appendChild(dialog);
 
-    // 动画进入
     requestAnimationFrame(() => {
       dialog.classList.add("mcp-dialog-show");
     });
 
-    // 绑定事件
     dialog.querySelector("#dialog-close").onclick = () => closeDialog(dialog);
     dialog.querySelector("#dialog-cancel").onclick = () => closeDialog(dialog);
 
@@ -406,7 +458,12 @@
 
   async function refreshTools(state, container, roche) {
     const toolsList = container.querySelector("#tools-list");
-    toolsList.innerHTML = '<div class="mcp-loading"><div class="mcp-spinner"></div><p>加载中...</p></div>';
+    toolsList.innerHTML = `
+      <div class="mcp-loading">
+        <div class="mcp-spinner"></div>
+        <p>正在加载工具...</p>
+      </div>
+    `;
 
     const allTools = [];
 
@@ -427,17 +484,28 @@
     }
 
     if (allTools.length === 0) {
-      toolsList.innerHTML = '<div class="mcp-empty-small"><span class="material-icons">build</span><p>没有发现可用工具</p></div>';
+      toolsList.innerHTML = `
+        <div class="mcp-empty-small">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+          <p>没有发现可用工具</p>
+        </div>
+      `;
     } else {
       toolsList.innerHTML = allTools.map(tool => `
         <div class="mcp-tool-card">
           <div class="mcp-tool-icon">
-            <span class="material-icons">extension</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
           </div>
-          <div class="mcp-tool-info">
-            <h4 class="mcp-tool-name">${escapeHtml(tool.name)}</h4>
+          <div class="mcp-tool-content">
+            <div class="mcp-tool-header">
+              <h4 class="mcp-tool-name">${escapeHtml(tool.name)}</h4>
+              <span class="mcp-tool-badge">${escapeHtml(tool.serverName)}</span>
+            </div>
             <p class="mcp-tool-desc">${escapeHtml(tool.description || '无描述')}</p>
-            <span class="mcp-tool-server">${escapeHtml(tool.serverName)}</span>
           </div>
         </div>
       `).join('');
@@ -489,7 +557,7 @@
     ]
   });
 
-  // ==================== 样式 ====================
+  // ==================== 样式（参考 Twitter 风格）====================
 
   function addStyles() {
     if (document.getElementById("mcp-styles")) return;
@@ -497,35 +565,37 @@
     const style = document.createElement("style");
     style.id = "mcp-styles";
     style.textContent = `
-      /* 全局样式 */
+      /* 全局 */
       .mcp-app {
-        height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        overflow: hidden;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: #ffffff;
+        color: #0f1419;
+        min-height: 100vh;
+        max-width: 768px;
+        margin: 0 auto;
       }
 
-      /* 顶部导航 */
-      .mcp-header {
+      /* 顶部导航栏 */
+      .mcp-top-bar {
         position: sticky;
         top: 0;
         left: 0;
         right: 0;
         height: 60px;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid #eff3f4;
         display: flex;
         align-items: center;
         padding: 0 16px;
         z-index: 100;
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
         padding-top: env(safe-area-inset-top);
       }
 
       .mcp-back-btn {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border: none;
         background: none;
         cursor: pointer;
@@ -533,97 +603,109 @@
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        transition: all 0.2s;
-        color: #333;
+        color: #0f1419;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .mcp-back-btn:hover {
-        background: rgba(0, 0, 0, 0.05);
+        background: rgba(0, 0, 0, 0.03);
+        transform: scale(1.1);
       }
 
       .mcp-back-btn:active {
+        background: rgba(0, 0, 0, 0.08);
         transform: scale(0.95);
       }
 
-      .mcp-title {
-        flex: 1;
-        text-align: center;
-        font-size: 18px;
-        font-weight: 600;
-        color: #333;
-        margin: 0;
+      .mcp-close-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: #0f1419;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      .mcp-header-spacer {
-        width: 40px;
+      .mcp-close-btn:hover {
+        background: rgba(244, 33, 46, 0.1);
+        color: #f4212e;
+        transform: scale(1.1);
+      }
+
+      .mcp-close-btn:active {
+        background: rgba(244, 33, 46, 0.2);
+        transform: scale(0.95);
+      }
+
+      .mcp-top-title {
+        flex: 1;
+        text-align: center;
+        font-size: 17px;
+        font-weight: 700;
+        margin: 0;
+        color: #0f1419;
+      }
+
+      .mcp-top-spacer {
+        width: 36px;
       }
 
       /* 主内容区 */
       .mcp-content {
-        height: calc(100vh - 60px - env(safe-area-inset-top));
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        padding: 20px 16px;
-        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+        padding: 16px;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom));
       }
 
-      /* 卡片 */
-      .mcp-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        animation: slideUp 0.4s ease-out;
+      /* 区块 */
+      .mcp-section {
+        background: #ffffff;
+        border: 1px solid #eff3f4;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      .mcp-card-gradient {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-        border: 2px solid rgba(255, 255, 255, 0.5);
+      .mcp-section:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
       }
 
-      @keyframes slideUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .mcp-card-header {
+      .mcp-section-header {
         display: flex;
         align-items: center;
-        margin-bottom: 16px;
-        gap: 12px;
+        gap: 10px;
+        margin-bottom: 12px;
       }
 
-      .mcp-card-icon {
-        color: #667eea;
-        font-size: 28px;
+      .mcp-section-icon {
+        color: #536471;
+        flex-shrink: 0;
       }
 
-      .mcp-card-header h2 {
+      .mcp-section-header h2 {
         flex: 1;
+        font-size: 19px;
+        font-weight: 700;
         margin: 0;
-        font-size: 20px;
-        font-weight: 600;
-        color: #333;
+        color: #0f1419;
       }
 
-      .mcp-card-desc {
-        color: #666;
+      .mcp-section-desc {
         font-size: 14px;
+        color: #536471;
         margin: 0 0 16px 0;
         line-height: 1.5;
       }
 
       /* 输入框 */
-      .mcp-input-row {
+      .mcp-input-group {
         display: flex;
         gap: 12px;
       }
@@ -631,161 +713,155 @@
       .mcp-input {
         flex: 1;
         padding: 12px 16px;
-        border: 2px solid rgba(102, 126, 234, 0.2);
-        border-radius: 12px;
-        font-size: 14px;
-        background: rgba(255, 255, 255, 0.8);
-        transition: all 0.2s;
+        border: 1px solid #cfd9de;
+        border-radius: 8px;
+        font-size: 15px;
         outline: none;
+        transition: all 0.2s;
       }
 
       .mcp-input:focus {
-        border-color: #667eea;
-        background: white;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        border-color: #1d9bf0;
+        box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.1);
       }
 
       /* 按钮 */
       .mcp-btn {
-        padding: 12px 24px;
+        padding: 10px 20px;
         border: none;
-        border-radius: 12px;
+        border-radius: 20px;
         cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      }
-
-      .mcp-btn:active {
-        transform: scale(0.95);
+        font-size: 15px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        white-space: nowrap;
       }
 
       .mcp-btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #1d9bf0;
         color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 2px 8px rgba(29, 155, 240, 0.3);
       }
 
       .mcp-btn-primary:hover {
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        background: #1a8cd8;
+        box-shadow: 0 4px 12px rgba(29, 155, 240, 0.4);
+        transform: translateY(-1px);
+      }
+
+      .mcp-btn-primary:active {
+        background: #1570b5;
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(29, 155, 240, 0.3);
       }
 
       .mcp-btn-secondary {
-        background: #f0f0f0;
-        color: #333;
+        background: #eff3f4;
+        color: #0f1419;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
       }
 
-      .mcp-btn-icon {
-        width: 40px;
-        height: 40px;
+      .mcp-btn-secondary:hover {
+        background: #e7ecef;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
+      }
+
+      .mcp-btn-secondary:active {
+        background: #d7dbdf;
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+      }
+
+      .mcp-icon-btn {
+        width: 36px;
+        height: 36px;
         padding: 0;
         border: none;
         background: none;
         cursor: pointer;
-        color: #667eea;
-        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
+        border-radius: 50%;
+        color: #1d9bf0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      .mcp-btn-icon:hover {
-        background: rgba(102, 126, 234, 0.1);
+      .mcp-icon-btn:hover {
+        background: rgba(29, 155, 240, 0.1);
+        transform: scale(1.1);
       }
 
-      .mcp-btn-icon:active {
-        transform: scale(0.9);
+      .mcp-icon-btn:active {
+        background: rgba(29, 155, 240, 0.2);
+        transform: scale(0.95);
       }
 
       /* 服务器列表 */
       .mcp-server-list {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 16px;
+        gap: 12px;
         margin-top: 16px;
       }
 
       .mcp-server-card {
-        position: relative;
-        background: white;
+        border: 1px solid #eff3f4;
         border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s;
-        border: 2px solid transparent;
+        padding: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       }
 
       .mcp-server-card:hover {
-        transform: translateY(-4px);
+        border-color: #cfd9de;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        transform: translateY(-4px);
       }
 
-      .mcp-server-connected {
-        border-color: #4CAF50;
-        background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(102, 187, 106, 0.05) 100%);
-      }
-
-      .mcp-server-disconnected {
-        border-color: #ff9800;
-        background: linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(255, 193, 7, 0.05) 100%);
-      }
-
-      .mcp-server-status-badge {
-        position: absolute;
-        top: 16px;
-        right: 16px;
+      .mcp-server-header {
         display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 500;
-        background: #4CAF50;
-        color: white;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
       }
 
-      .mcp-server-disconnected .mcp-server-status-badge {
-        background: #ff9800;
-      }
-
-      .mcp-server-status-badge .material-icons {
-        font-size: 16px;
+      .mcp-server-info {
+        flex: 1;
+        min-width: 0;
       }
 
       .mcp-server-name {
-        margin: 0 0 8px 0;
-        font-size: 18px;
-        font-weight: 600;
-        color: #333;
-        padding-right: 80px;
+        font-size: 17px;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+        color: #0f1419;
       }
 
       .mcp-server-url {
-        font-size: 12px;
-        color: #666;
+        font-size: 13px;
+        color: #536471;
+        margin: 0;
         word-break: break-all;
-        margin: 0 0 12px 0;
-        line-height: 1.4;
+      }
+
+      .mcp-server-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
       }
 
       .mcp-server-tools {
         display: flex;
         align-items: center;
         gap: 6px;
-        font-size: 13px;
-        color: #667eea;
-        margin-bottom: 16px;
-        font-weight: 500;
-      }
-
-      .mcp-server-tools .material-icons {
-        font-size: 18px;
+        font-size: 14px;
+        color: #536471;
+        margin-bottom: 12px;
       }
 
       .mcp-server-actions {
@@ -795,48 +871,53 @@
 
       .mcp-action-btn {
         flex: 1;
-        padding: 8px;
-        border: none;
-        border-radius: 10px;
+        padding: 8px 12px;
+        border: 1px solid #cfd9de;
+        background: #ffffff;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 12px;
-        font-weight: 500;
+        font-size: 14px;
+        font-weight: 600;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 6px;
+        color: #0f1419;
         transition: all 0.2s;
       }
 
-      .mcp-action-btn .material-icons {
-        font-size: 16px;
+      .mcp-action-btn:hover {
+        background: rgba(0, 0, 0, 0.03);
       }
 
-      .mcp-btn-test {
-        background: #2196F3;
-        color: white;
+      .mcp-action-btn:active {
+        background: rgba(0, 0, 0, 0.08);
       }
 
-      .mcp-btn-test:hover {
-        background: #1976D2;
+      .mcp-action-test {
+        color: #1d9bf0;
+        border-color: #1d9bf0;
       }
 
-      .mcp-btn-edit {
-        background: #FF9800;
-        color: white;
+      .mcp-action-test:hover {
+        background: rgba(29, 155, 240, 0.1);
       }
 
-      .mcp-btn-edit:hover {
-        background: #F57C00;
+      .mcp-action-test:active {
+        background: rgba(29, 155, 240, 0.2);
       }
 
-      .mcp-btn-delete {
-        background: #f44336;
-        color: white;
+      .mcp-action-delete {
+        color: #f4212e;
+        border-color: #f4212e;
       }
 
-      .mcp-btn-delete:hover {
-        background: #d32f2f;
+      .mcp-action-delete:hover {
+        background: rgba(244, 33, 46, 0.1);
+      }
+
+      .mcp-action-delete:active {
+        background: rgba(244, 33, 46, 0.2);
       }
 
       /* 工具列表 */
@@ -848,117 +929,118 @@
 
       .mcp-tool-card {
         display: flex;
-        gap: 16px;
-        background: white;
+        gap: 12px;
+        border: 1px solid #eff3f4;
         border-radius: 12px;
         padding: 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         transition: all 0.2s;
+        background: #ffffff;
       }
 
       .mcp-tool-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transform: translateX(4px);
+        border-color: #cfd9de;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       }
 
       .mcp-tool-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: rgba(29, 155, 240, 0.1);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
+        color: #1d9bf0;
         flex-shrink: 0;
       }
 
-      .mcp-tool-icon .material-icons {
-        font-size: 24px;
-      }
-
-      .mcp-tool-info {
+      .mcp-tool-content {
         flex: 1;
         min-width: 0;
       }
 
+      .mcp-tool-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+
       .mcp-tool-name {
-        margin: 0 0 4px 0;
-        font-size: 16px;
-        font-weight: 600;
-        color: #333;
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0;
+        color: #0f1419;
+      }
+
+      .mcp-tool-badge {
+        font-size: 12px;
+        color: #536471;
+        background: #eff3f4;
+        padding: 2px 8px;
+        border-radius: 12px;
+        white-space: nowrap;
       }
 
       .mcp-tool-desc {
-        margin: 0 0 8px 0;
-        font-size: 13px;
-        color: #666;
+        font-size: 14px;
+        color: #536471;
+        margin: 0;
         line-height: 1.4;
-      }
-
-      .mcp-tool-server {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 12px;
-        background: rgba(102, 126, 234, 0.1);
-        color: #667eea;
-        font-size: 11px;
-        font-weight: 500;
       }
 
       /* 空状态 */
       .mcp-empty {
         text-align: center;
         padding: 60px 20px;
-        color: #999;
       }
 
-      .mcp-empty .material-icons {
-        font-size: 64px;
-        color: #ddd;
+      .mcp-empty svg {
+        color: #cfd9de;
         margin-bottom: 16px;
       }
 
       .mcp-empty p {
+        font-size: 17px;
+        font-weight: 700;
+        color: #0f1419;
         margin: 0 0 8px 0;
-        font-size: 16px;
-        font-weight: 500;
       }
 
-      .mcp-hint-text {
-        font-size: 13px;
-        color: #bbb;
+      .mcp-empty-hint {
+        font-size: 14px;
+        color: #536471;
       }
 
       .mcp-empty-small {
         text-align: center;
         padding: 40px 20px;
-        color: #999;
       }
 
-      .mcp-empty-small .material-icons {
-        font-size: 48px;
-        color: #ddd;
+      .mcp-empty-small svg {
+        color: #cfd9de;
         margin-bottom: 12px;
       }
 
       .mcp-empty-small p {
-        margin: 0;
         font-size: 14px;
+        color: #536471;
+        margin: 0;
       }
 
-      /* 加载动画 */
+      /* 加载状态 */
       .mcp-loading {
         text-align: center;
-        padding: 40px;
+        padding: 40px 20px;
       }
 
       .mcp-spinner {
-        width: 40px;
-        height: 40px;
+        width: 32px;
+        height: 32px;
         margin: 0 auto 16px;
-        border: 4px solid rgba(102, 126, 234, 0.2);
-        border-top-color: #667eea;
+        border: 3px solid #eff3f4;
+        border-top-color: #1d9bf0;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
       }
@@ -968,8 +1050,9 @@
       }
 
       .mcp-loading p {
-        color: #999;
         font-size: 14px;
+        color: #536471;
+        margin: 0;
       }
 
       /* 对话框 */
@@ -979,16 +1062,14 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: rgba(0, 0, 0, 0.4);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 1000;
-        opacity: 0;
-        transition: opacity 0.3s;
         padding: 20px;
+        opacity: 0;
+        transition: opacity 0.2s;
       }
 
       .mcp-dialog-overlay.mcp-dialog-show {
@@ -996,119 +1077,116 @@
       }
 
       .mcp-dialog {
-        background: white;
-        border-radius: 24px;
+        background: #ffffff;
+        border-radius: 16px;
         width: 100%;
-        max-width: 500px;
+        max-width: 480px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        transform: scale(0.9) translateY(20px);
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        overflow: hidden;
+        transform: scale(0.9);
+        transition: transform 0.2s;
       }
 
       .mcp-dialog-show .mcp-dialog {
-        transform: scale(1) translateY(0);
+        transform: scale(1);
       }
 
       .mcp-dialog-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 24px 24px 0 24px;
+        padding: 20px 20px 16px 20px;
+        border-bottom: 1px solid #eff3f4;
       }
 
       .mcp-dialog-header h2 {
+        font-size: 19px;
+        font-weight: 700;
         margin: 0;
-        font-size: 22px;
-        font-weight: 600;
-        color: #333;
+        color: #0f1419;
       }
 
       .mcp-dialog-close {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         padding: 0;
         border: none;
         background: none;
         cursor: pointer;
-        color: #999;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
+        color: #536471;
+        transition: background 0.2s;
       }
 
       .mcp-dialog-close:hover {
-        background: #f0f0f0;
-        color: #333;
+        background: rgba(0, 0, 0, 0.03);
       }
 
-      .mcp-dialog-content {
-        padding: 24px;
+      .mcp-dialog-close:active {
+        background: rgba(0, 0, 0, 0.08);
       }
 
-      .mcp-form-group {
+      .mcp-dialog-body {
+        padding: 20px;
+      }
+
+      .mcp-form-item {
         margin-bottom: 20px;
       }
 
-      .mcp-form-group:last-child {
+      .mcp-form-item:last-child {
         margin-bottom: 0;
       }
 
-      .mcp-form-group label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+      .mcp-form-item label {
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+        color: #0f1419;
         margin-bottom: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        color: #555;
       }
 
-      .mcp-form-group label .material-icons {
-        font-size: 18px;
-        color: #667eea;
+      .mcp-label-optional {
+        font-weight: 400;
+        color: #536471;
       }
 
-      .mcp-form-group .mcp-input {
+      .mcp-form-item .mcp-input {
         width: 100%;
         box-sizing: border-box;
       }
 
-      .mcp-dialog-actions {
+      .mcp-dialog-footer {
         display: flex;
         gap: 12px;
-        padding: 0 24px 24px 24px;
+        padding: 16px 20px 20px 20px;
       }
 
-      .mcp-dialog-actions .mcp-btn {
+      .mcp-dialog-footer .mcp-btn {
         flex: 1;
       }
 
       /* 移动端适配 */
       @media (max-width: 768px) {
-        .mcp-server-list {
-          grid-template-columns: 1fr;
-        }
-
         .mcp-dialog {
           max-width: none;
           width: 100%;
           margin: 0;
-          border-radius: 24px 24px 0 0;
+          border-radius: 16px 16px 0 0;
           position: fixed;
           bottom: 0;
           left: 0;
           right: 0;
         }
 
-        .mcp-dialog-overlay.mcp-dialog-show .mcp-dialog {
-          transform: translateY(0);
-        }
-
         .mcp-dialog-overlay:not(.mcp-dialog-show) .mcp-dialog {
           transform: translateY(100%);
+        }
+
+        .mcp-dialog-overlay.mcp-dialog-show .mcp-dialog {
+          transform: translateY(0);
         }
       }
     `;
